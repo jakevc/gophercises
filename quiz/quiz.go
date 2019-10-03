@@ -1,23 +1,33 @@
 package main
 
 import (
-	"bufio"
 	"time"
 	"encoding/csv"
 	"flag"
 	"fmt"
-	"io"
-	"log"
 	"os"
 	"strings"
 )
 
+type problem struct {
+	q string
+	a string
+}
 
-func printScore (c, i int) float32 {
-	// calculate quiz score
-	score := float32(c) / float32(c+i) * 100
-	fmt.Printf("Score: %0.2f %%\n", score)
-	return score
+func exit(msg string) {
+	fmt.Println(msg)
+	os.Exit(1)
+}
+
+func parseLines (lines [][]string ) []problem {
+	ret := make([]problem, len(lines))
+	for i,line := range lines {
+		ret[i] = problem{
+			q:line[0],
+			a:strings.TrimSpace(line[1]),
+		}
+	} 
+	return ret
 }
 
 
@@ -29,61 +39,46 @@ func main() {
 	flag.Parse()
 
 	// read in the problems quiz file
-	probs, err := os.Open(*probFi)
+	file, err := os.Open(*probFi)
 
 	if err != nil {
-		fmt.Println("Error opening file:", err)
+		exit(fmt.Sprintf("Failed to open the CSV file: %s\n", *probFi))
+	}	
+
+	// parse problem file
+	r := csv.NewReader(file)
+	all, err := r.ReadAll()
+	if err != nil {
+		exit(fmt.Sprintf("Failed to parse csvfiel: %s\n", *probFi))
 	}
 
-	// init quiz reader
-	rdr := csv.NewReader(bufio.NewReader(probs))
+	problems := parseLines(all)
 
-	// define stdin reader
-	inp := bufio.NewReader(os.Stdin)
+	fmt.Println(problems)
 
-	// start the quiz
-	fmt.Println("Let's start the Quiz!")
-
-	ncorr := 0
-	nincorr := 0
-
-	// start the timer 
+	// initialize a timer 
 	timer := time.NewTimer(time.Duration(*secs) * time.Second)
+	corr := 0
 
-	i := 0 
-	for {
-		select {
-		case <-timer.C:
-			fmt.Println("\nTimed out!")
-			printScore(ncorr, nincorr)
-			return
-        default:
-			line, err := rdr.Read()
-			if line == nil {
-				printScore(ncorr, nincorr)
-				return
-			}
-			if err == io.EOF {
-				break
-			} else if err != nil {
-				log.Fatal(err)
-			}
-			fmt.Printf("Problem %v: %v\n", i, line[0])
+	problemLoop:
+		for i,p := range problems {
+			fmt.Printf("Problem #%d: %s = ", i+1, p.q)
+			ans := make(chan string)
+			go func() {
+				var answer string 
+				fmt.Scanf("%s\n", &answer)
+				ans <- answer
+			}()
 
-			txt, err := inp.ReadString('\n')
-			if err != nil {
-				log.Fatal(err)
+			select {
+			case <- timer.C:
+				fmt.Println("\nYou ran out of time!")
+				break problemLoop
+			case answer := <- ans:
+				if answer == p.a {
+					corr++
+				}
 			}
-			txt = strings.Replace(txt, "\n", "", -1)
-
-			if txt == line[1] {
-				fmt.Printf("Yay! %v is the correct answer!\n", txt)
-				ncorr++
-			} else {
-				fmt.Printf("%v is not the right answer\n", txt)
-				nincorr++
-			}
-			i++
 		}
-	}
+		fmt.Printf("You got %d out of %d correct.\n", corr, len(problems))
 }
