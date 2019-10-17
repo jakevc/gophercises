@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>{{.Title}}</title>
+		<link rel="stylesheet" type="text/css" href="/static/style.css">
+	</head>
+	<body>
+		<div class="storyContainer">
+			<a href="/" class="button">Restart Adventrue</a>
+		<article>
+			<h1>{{.Title}}</h1>
+			{{range .Story}}<div style="padding: 1%;">{{ . }}</div>{{else}}<div><strong>no rows</strong></div>{{end}}
+
+			<h2>Where would you like to go?</h2>
+   		    {{range .Options}}<div style="padding: 1%;"><a href="/arc/{{ .Arc }}" class="button">{{ .Text }}</a></div>{{else}}<div><strong>no options</strong></div>{{end}}
+		</article>
+		</div>
+	</body>
+</html>

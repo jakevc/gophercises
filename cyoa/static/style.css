@@ -1,0 +1,35 @@
+
+body {
+    background-color: white;
+}
+
+div {
+    background-color: powderblue;
+}
+
+h1 {
+    color: black;
+}
+
+p {
+    color: black;
+}
+
+.button {
+    background-color: rgba(255, 166, 0, 0.619); /* Green */
+    border-radius: 8px;
+    border: 2px solid orange;
+    color: rgba(0, 0, 0, 0.653);
+    padding: 3px 6px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+  }
+
+.storyContainer {
+    margin: auto;
+    width: 60%;
+    border: 3px solid orange;
+    padding: 10px;
+}
