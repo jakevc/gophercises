@@ -2,23 +2,23 @@
 package main
 
 import (
-	"fmt"
-	"os"
-	"log"
-	"io/ioutil"
 	"encoding/json"
-	"net/http"
+	"fmt"
 	"html/template"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"os"
 )
 
 // Cyoa struct holds stories and their contents.
 type Cyoa struct {
-		Title   string   `json:"title"`
-		Story   []string `json:"story"`
-		Options []struct {
-			Text string `json:"text"`
-			Arc  string `json:"arc"`
-		} `json:"options"`
+	Title   string   `json:"title"`
+	Story   []string `json:"story"`
+	Options []struct {
+		Text string `json:"text"`
+		Arc  string `json:"arc"`
+	} `json:"options"`
 }
 
 // Story is map that contains each chapter's story as a Cyoa struct.
@@ -35,7 +35,7 @@ func parseJSON() map[string]Cyoa {
 	if err != nil {
 		log.Fatalf("Failed to open json file: %s", err)
 	}
-	defer file.Close() 
+	defer file.Close()
 
 	// fil to bytes
 	cyoaData, err := ioutil.ReadAll(file)
@@ -44,7 +44,7 @@ func parseJSON() map[string]Cyoa {
 	}
 
 	// unmarshal json into Story struct
-	err = json.Unmarshal(cyoaData, &adventure) 
+	err = json.Unmarshal(cyoaData, &adventure)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -56,11 +56,11 @@ func parseJSON() map[string]Cyoa {
 func storyHandler(adventureMap map[string]Cyoa) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		arc := r.URL.Path[len("/arc/"):]
-		if _ , ok := adventureMap[arc]; ok {
+		if _, ok := adventureMap[arc]; ok {
 			t := template.Must(template.ParseFiles("tmpl/story.html"))
 			err := t.Execute(w, adventureMap[arc])
 			if err != nil {
-				log.Fatal(err)	
+				log.Fatal(err)
 			}
 		}
 
@@ -75,7 +75,6 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-
 func main() {
 	a := parseJSON()
 	Story := storyHandler(a)
@@ -85,5 +84,3 @@ func main() {
 	http.HandleFunc("/arc/", Story)
 	http.ListenAndServe(":8080", nil)
 }
-
-
